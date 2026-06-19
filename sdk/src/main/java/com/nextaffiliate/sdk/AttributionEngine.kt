@@ -31,7 +31,8 @@ internal class AttributionEngine(
         val nxPb = params["nx_pb"]?.takeIf { it.isNotEmpty() }
         val clickId = params["nx_click_id"]?.takeIf { it.isNotEmpty() }
         if (nxPb == null && clickId == null) return null
-        store.save(nxPb = nxPb, clickId = clickId, source = AttributionSource.SCHEME)
+        val route = params["route"]?.takeIf { it.isNotEmpty() }
+        store.save(nxPb = nxPb, clickId = clickId, source = AttributionSource.SCHEME, route = route)
         return store.read()
     }
 
@@ -46,7 +47,15 @@ internal class AttributionEngine(
         val nxPb = LinkParser.queryParamsFromLocation(location)["nx_pb"]
             ?.takeIf { it.isNotEmpty() }
             ?: return null
-        store.save(nxPb = nxPb, clickId = null, source = AttributionSource.UNIVERSAL_LINK)
+        // The route lives on the INCOMING link the app was opened with, not on the resolved
+        // Location header (which is the offer URL).
+        val route = LinkParser.queryParams(url)["route"]?.takeIf { it.isNotEmpty() }
+        store.save(
+            nxPb = nxPb,
+            clickId = null,
+            source = AttributionSource.UNIVERSAL_LINK,
+            route = route,
+        )
         return store.read()
     }
 
@@ -66,7 +75,7 @@ internal class AttributionEngine(
             if (!parseMatched(body)) return store.read()
             val clickId = parseClickId(body)?.takeIf { it.isNotEmpty() } ?: return store.read()
 
-            store.save(nxPb = null, clickId = clickId, source = AttributionSource.DEFERRED)
+            store.save(nxPb = null, clickId = clickId, source = AttributionSource.DEFERRED, route = null)
             store.read()
         } catch (t: Throwable) {
             null

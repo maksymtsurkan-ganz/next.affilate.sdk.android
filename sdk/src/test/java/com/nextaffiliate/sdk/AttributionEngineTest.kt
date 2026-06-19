@@ -42,6 +42,16 @@ class AttributionEngineTest {
     }
 
     @Test
+    fun `scheme link parses route query param`() {
+        val store = FakeAttributionStore()
+        val result = engine(store = store)
+            .handleLink("myapp://open?nx_pb=DEMO_TOKEN&route=/carwash/123")
+
+        assertEquals("/carwash/123", result?.route)
+        assertEquals("/carwash/123", store.read()?.route)
+    }
+
+    @Test
     fun `scheme link with no relevant params returns null`() {
         assertNull(engine().handleLink("myapp://open?foo=bar"))
     }
@@ -69,6 +79,24 @@ class AttributionEngineTest {
         assertEquals(AttributionSource.UNIVERSAL_LINK, result?.source)
         assertEquals(1, http.getCallCount)
         assertEquals(AttributionEngine.DESKTOP_USER_AGENT, http.lastUserAgent)
+    }
+
+    @Test
+    fun `universal link reads route from incoming link not from Location`() {
+        val http = FakeHttpClient(
+            // Location is the offer URL and carries no route.
+            getResponse = HttpResponse(
+                statusCode = 302,
+                headers = mapOf("location" to "https://store.example.com/p/9?nx_pb=SIGNED_TOKEN"),
+                body = null,
+            ),
+        )
+        val result = engine(http = http)
+            .handleLink("https://acme.next-ads-server-dev.com/trk/abc?route=/carwash/9")
+
+        assertEquals("SIGNED_TOKEN", result?.nxPb)
+        assertEquals("/carwash/9", result?.route)
+        assertEquals(AttributionSource.UNIVERSAL_LINK, result?.source)
     }
 
     @Test

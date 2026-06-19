@@ -118,6 +118,7 @@ data class Attribution(
     val nxPb: String?,
     val clickId: String?,
     val source: AttributionSource,   // SCHEME | UNIVERSAL_LINK | DEFERRED
+    val route: String?,              // in-app navigation path from the link's `route` query param
 ) { val isAttributed: Boolean }      // nxPb != null || clickId != null
 ```
 

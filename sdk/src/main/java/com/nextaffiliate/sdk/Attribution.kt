@@ -10,6 +10,11 @@ data class Attribution(
     val nxPb: String? = null,
     val clickId: String? = null,
     val source: AttributionSource,
+    /**
+     * Optional in-app navigation path carried by the link (e.g. `/carwash/123`), from the
+     * link's `route` query param. The host app navigates to it after open; null when absent.
+     */
+    val route: String? = null,
 ) {
     /** True when at least one usable identifier was recovered. */
     val isAttributed: Boolean

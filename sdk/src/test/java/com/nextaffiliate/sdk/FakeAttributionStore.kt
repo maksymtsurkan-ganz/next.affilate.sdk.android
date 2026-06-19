@@ -5,24 +5,27 @@ internal class FakeAttributionStore : AttributionStore {
     private var nxPb: String? = null
     private var clickId: String? = null
     private var source: AttributionSource? = null
+    private var route: String? = null
     private var deferredChecked = false
 
-    override fun save(nxPb: String?, clickId: String?, source: AttributionSource) {
+    override fun save(nxPb: String?, clickId: String?, source: AttributionSource, route: String?) {
         this.nxPb = nxPb
         this.clickId = clickId
         this.source = source
+        this.route = route
     }
 
     override fun read(): Attribution? {
         val s = source ?: return null
         if (nxPb == null && clickId == null) return null
-        return Attribution(nxPb = nxPb, clickId = clickId, source = s)
+        return Attribution(nxPb = nxPb, clickId = clickId, source = s, route = route)
     }
 
     override fun clearAttribution() {
         nxPb = null
         clickId = null
         source = null
+        route = null
     }
 
     override fun isDeferredChecked(): Boolean = deferredChecked

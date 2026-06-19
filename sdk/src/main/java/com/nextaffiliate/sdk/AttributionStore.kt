@@ -8,7 +8,7 @@ import android.content.SharedPreferences
  * production; an in-memory implementation is used in unit tests.
  */
 internal interface AttributionStore {
-    fun save(nxPb: String?, clickId: String?, source: AttributionSource)
+    fun save(nxPb: String?, clickId: String?, source: AttributionSource, route: String?)
     fun read(): Attribution?
     fun clearAttribution()
     fun isDeferredChecked(): Boolean
@@ -20,6 +20,7 @@ internal object StoreKeys {
     const val NX_PB = "next_affiliate_nx_pb"
     const val CLICK_ID = "next_affiliate_click_id"
     const val SOURCE = "next_affiliate_source"
+    const val ROUTE = "next_affiliate_route"
     const val DEFERRED_CHECKED = "next_affiliate_deferred_checked"
     const val PREFS_NAME = "next_affiliate_sdk"
 }
@@ -33,11 +34,12 @@ internal class SharedPrefsAttributionStore(
             .getSharedPreferences(StoreKeys.PREFS_NAME, Context.MODE_PRIVATE),
     )
 
-    override fun save(nxPb: String?, clickId: String?, source: AttributionSource) {
+    override fun save(nxPb: String?, clickId: String?, source: AttributionSource, route: String?) {
         prefs.edit()
             .putString(StoreKeys.NX_PB, nxPb)
             .putString(StoreKeys.CLICK_ID, clickId)
             .putString(StoreKeys.SOURCE, source.wireValue)
+            .putString(StoreKeys.ROUTE, route)
             .apply()
     }
 
@@ -45,9 +47,10 @@ internal class SharedPrefsAttributionStore(
         val nxPb = prefs.getString(StoreKeys.NX_PB, null)
         val clickId = prefs.getString(StoreKeys.CLICK_ID, null)
         val source = AttributionSource.fromWire(prefs.getString(StoreKeys.SOURCE, null))
+        val route = prefs.getString(StoreKeys.ROUTE, null)
         if (nxPb == null && clickId == null) return null
         if (source == null) return null
-        return Attribution(nxPb = nxPb, clickId = clickId, source = source)
+        return Attribution(nxPb = nxPb, clickId = clickId, source = source, route = route)
     }
 
     override fun clearAttribution() {
@@ -55,6 +58,7 @@ internal class SharedPrefsAttributionStore(
             .remove(StoreKeys.NX_PB)
             .remove(StoreKeys.CLICK_ID)
             .remove(StoreKeys.SOURCE)
+            .remove(StoreKeys.ROUTE)
             .apply()
     }
 
